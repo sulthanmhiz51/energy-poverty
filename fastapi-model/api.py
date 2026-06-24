@@ -51,10 +51,23 @@ def analyze_household(data: HouseholdData):
         # Call the AI Model
         result = predict.predict(ai_input)
 
-        # Format Output
-        color = "green"
+        # 1. Get the Core Rule-Based Level
         level = result.get("Household Energy Vulnerability Level", "Unknown")
+
+        # 2. Decode the Random Forest Prediction
+        rf_raw = str(result.get("Random Forest Prediction", ""))
+        rf_decoder = {"0": "High", "1": "Low", "2": "Medium"}
+        rf_decoded_level = rf_decoder.get(rf_raw, "Unknown")
+
+        # 3. Fix the AI Developer's Broken Validation Logic
+        if rf_decoded_level == level:
+            fixed_validation = "Consistent"
+        else:
+            fixed_validation = "Need Attention"
+
+        # 4. Smart Reframing of the Explanation
         raw_reasoning = result.get("AI Explanation", "")
+        color = "green"
 
         if "High" in level:
             color = "red"
@@ -63,7 +76,6 @@ def analyze_household(data: HouseholdData):
             color = "yellow"
             final_reasoning = f"Moderate risk detected due to: {raw_reasoning}. Household may require monitoring or partial subsidy."
         else:
-            # Reframe the Low Risk explanation to focus on stability
             if "Tidak ditemukan" in raw_reasoning:
                 final_reasoning = "Household exhibits strong economic, asset, and infrastructure stability. No significant vulnerabilities detected."
             else:
@@ -72,11 +84,12 @@ def analyze_household(data: HouseholdData):
         return {
             "status": f"{level}: {result.get('Subsidy Priority', '')}",
             "color": color,
-            "reasoning": final_reasoning,  # <--- Pass the new smart reasoning here
+            "reasoning": final_reasoning,
             "score": int(result.get("Household Energy Vulnerability Score", 0)),
-            "rf_prediction": str(result.get("Random Forest Prediction", "Unknown")),
+            # 5. Pass the newly fixed RF data to Laravel
+            "rf_prediction": rf_decoded_level,
             "rf_confidence": float(result.get("Random Forest Confidence (%)", 0.0)),
-            "rf_validation": str(result.get("Validation Status", "Unknown")),
+            "rf_validation": fixed_validation,
         }
 
     except Exception as e:
