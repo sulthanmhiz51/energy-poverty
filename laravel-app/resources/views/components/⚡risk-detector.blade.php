@@ -54,7 +54,7 @@ new #[Title('AI Energy Poverty Risk Detector')] class extends Component
         ];
 
         try {
-            $response = Http::timeout(10)->post('http://127.0.0.1:8001/predict', $payload);
+            $response = Http::withoutVerifying()->timeout(15)->post('https://sulthanmhiz51-energy-poverty.hf.space/predict', $payload);
             
             if ($response->successful()) {
                 $this->result = $response->json();
@@ -63,7 +63,7 @@ new #[Title('AI Energy Poverty Risk Detector')] class extends Component
                 $this->result = ['error' => 'API Error: ' . $response->body()];
             }
         } catch (\Exception $e) {
-            $this->result = ['error' => 'Connection to AI Server refused.'];
+            $this->result = ['error' => 'cURL Error: ' . $e->getMessage()];
         }
     }
 
@@ -157,7 +157,7 @@ new #[Title('AI Energy Poverty Risk Detector')] class extends Component
                                         this.display = raw ? new Intl.NumberFormat('en-US').format(raw) : '';
                                     }
                                 }">
-                                    <label class="block text-xs font-bold text-gray-700">Monthly Income</label>
+                                    <label class="block text-xs font-bold text-gray-700">Annual Income</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-gray-500 sm:text-sm font-bold">$</span></div>
                                         <input type="text" x-model="display" @input="formatInput" class="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-[#3c8000] focus:ring focus:ring-[#b2d235]/50 sm:text-sm border py-2 transition" required>
